@@ -1,18 +1,59 @@
 from enum import Enum
-from typing import Annotated
-from fastapi import FastAPI, Query
-from pydantic import BaseModel, AfterValidator
+from typing import Annotated, Literal
+from fastapi import FastAPI, Query, Path, Body
+from pydantic import BaseModel, AfterValidator, Field
 class ModelName(str, Enum):
     duck = "duck"
     dog = "dog"
     cat = "cat"
 
+
+class Image(BaseModel):
+    url: str
+    name: str
+
 # Request Body
+
+class Item(BaseModel):
+    name: str = Field(examples=["Foo"])
+    description: str | None = Field(
+        default=None, title="The description of the item", max_length=300
+    )
+    price: float = Field(gt=0, description="The price must be greater than zero")
+    tax: float | None = Field(default=None, examples=[3.2])
+    tags: list[str] = []
+    image: Image | None = None
+
+
+# Base model with Examples in model config
 class Item(BaseModel):
     name: str
     description: str | None = None
     price: float
     tax: float | None = None
+    
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Foo",
+                    "description": "A very nice Item",
+                    "price": 35.4,
+                    "tax": 3.2,
+                }
+            ]
+        }
+    }
+    
+
+#Query Parameters Models
+class FilterParams(BaseModel):
+    # model_config ={"extra": "forbid"}   # Forbid extra fields not defined in the model
+    
+    limit: int = Field(100, gt=0, le=100)
+    offset: int = Field(0, ge=0)
+    order_by: Literal["created_at", "updated_at"] = "created_at"
+    tags: list[str] = []
 
 fake_items_db = [{"item_name": "Apple"}, {"item_name": "Pear"}, {"item_name": "Orange"}]
 
@@ -59,17 +100,18 @@ async def get_model(model_name: ModelName):
 # async def read_item(skip: int = 0, limit: int = 10):
 #     return fake_items_db[skip: skip + limit]
 
+
 # Optional Query Parameters and Type Conversion
-@app.get("/items/{item_id}")
-async def read_item(item_id: str, q:str | None = None, short: bool = False):
-    item = {"item_id": item_id}
-    if q:
-        item.update({"q": q})
-    if not short:
-        item.update(
-            {"description": "This is an amazing item that has a loooooonnng description"}
-        )
-    return item
+# @app.get("/items/{item_id}")
+# async def read_item(item_id: str, q:str | None = None, short: bool = False):
+#     item = {"item_id": item_id}
+#     if q:
+#         item.update({"q": q})
+#     if not short:
+#         item.update(
+#             {"description": "This is an amazing item that has a loooooonnng description"}
+#         )
+#     return item
 
 
 # Multiple path and query parameters (required and not required)
@@ -103,12 +145,12 @@ async def create_item(item: Item):
 #     return {"item_id": item_id, **item.model_dump()}
 
 # Request body + path parameters + query parameters
-@app.put("items/{item_id}")
-async def update_item(item_id: int, item: Item,q: str | None = None):
-    result = {"item _id": item_id, **item.model_dump()}
-    if q:
-        result.update({"q": q})
-    return result
+# @app.put("items/{item_id}")
+# async def update_item(item_id: int, item: Item,q: str | None = None):
+#     result = {"item _id": item_id, **item.model_dump()}
+#     if q:
+#         result.update({"q": q})
+#     return result
 
 
 
@@ -165,3 +207,56 @@ async def read_items(
         results.update({"q": q})
     return results
 
+
+# Path Parameters and Numeric Validations
+# Can use the same attributes as Query
+# @app.get("/items/{item_id}")
+# async def read_items(
+#     item_id: Annotated[int, Path(title="The ID of the item", ge=0, le=1000)],
+#     size: Annotated[float, Query(gt=0, lt=10.5)],
+#     q: Annotated[str | None, Query(alias="item-query")] = None,
+# ):
+#     results = {"item_id": item_id}
+#     if size:
+#         results.update({"size": size})
+#     if q:
+#         results.update({"q": q})
+#     return results
+#gt, lt, ge, le
+# greater than, less than, greater than or equal to, less than or equal to
+
+# Using Pydantic Models for Query Parameters
+@app.get("/items/")
+async def read_items(filter_query: Annotated[FilterParams, Query()]):
+    return filter_query
+
+
+# Example of Body with multiple examples
+@app.put("/items/{item_id}")
+async def update_item(
+    *,
+    item_id: int,
+    item: Annotated[
+        Item,
+        Body(
+            examples=[
+                {
+                    "name": "Foo",
+                    "description": "A very nice Item",
+                    "price": 35.4,
+                    "tax": 3.2,
+                },
+                {
+                    "name": "Bar",
+                    "price": "35.4",
+                },
+                {
+                    "name": "Baz",
+                    "price": "thirty five point four",
+                },
+            ]
+        )
+    ]
+):
+    results = {"item_id": item_id, **item.model_dump()}
+    return results
