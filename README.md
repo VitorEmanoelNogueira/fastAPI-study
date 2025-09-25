@@ -14,7 +14,7 @@ An API to manage a book catalog with basic functionalities using **FastAPI**.
 - **DELETE** `/books/{book_id}` → remove a book  
 
 ### 2. Book Pydantic Model
-- `id` (int, auto-generated)
+- `id` (UUID, auto-generated)
 - `title` (str, required, max 100 chars)
 - `author` (str, required)
 - `year` (int, optional, between 0 and 2100)
@@ -38,7 +38,7 @@ An API to manage a book catalog with basic functionalities using **FastAPI**.
 
 ## Next Steps
 - [x] Implement the Book model with Pydantic  
-- [ ] Create CRUD endpoints  
+- [x] Create CRUD endpoints  
 - [ ] Add filters for author and year  
 - [ ] Customize error and delete responses  
 
