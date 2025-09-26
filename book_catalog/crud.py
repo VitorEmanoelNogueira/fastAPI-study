@@ -2,6 +2,7 @@ from models import Book
 from storage import books
 from uuid import uuid4
 
+
 # CREATE
 def create_book(book: Book):
     book_id = uuid4()
@@ -15,8 +16,15 @@ def get_book(book_id):
         return {"id": book_id, **book}
     return None
 
-def get_all_books():
-    return [{"id": book_id, **book} for book_id, book in books.items()]
+def get_all_books(author = None, year = None):
+    filtered_books = []
+    for book_id, book in books.items():
+        if author and book["author"] != author:
+            continue
+        if year and book["year"] != year:
+            continue
+        filtered_books.append({"id": book_id, **book})
+    return filtered_books
     
     
 # UPDATE

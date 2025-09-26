@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
+from typing import Annotated
 from models import Book
 from crud import create_book, get_book, get_all_books, update_book, delete_book
 from uuid import UUID
@@ -22,8 +23,14 @@ def read_book(book_id: UUID):
     return error_message
 
 @app.get("/books/")
-def read_all_books():
-    return get_all_books()
+def read_all_books(
+    author: Annotated[ str | None, Query(min_length = 1)] = None,
+    year: Annotated[int  | None, Query(ge=0, le=2100)] = None
+):
+    books = get_all_books(author, year)
+    if books:
+        return books
+    return error_message
 
 @app.put("/books/{book_id}")
 def modify_book(book_id: UUID, book: Book):
@@ -38,6 +45,3 @@ def remove_book(book_id: UUID):
     if deleted_book:
         return {"message": f"Book of id {book_id} deleted successfully"}
     return error_message
- 
- 
- 

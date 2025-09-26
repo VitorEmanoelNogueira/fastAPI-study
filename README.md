@@ -39,7 +39,7 @@ An API to manage a book catalog with basic functionalities using **FastAPI**.
 ## Next Steps
 - [x] Implement the Book model with Pydantic  
 - [x] Create CRUD endpoints  
-- [ ] Add filters for author and year  
+- [x] Add filters for author and year  
 - [ ] Customize error and delete responses  
 
 ---
