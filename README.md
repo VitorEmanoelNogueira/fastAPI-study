@@ -2,6 +2,8 @@
 
 An API to manage a book catalog with basic functionalities using **FastAPI**.
 
+Run the app and access the interactive API docs at http://localhost:8000/docs or /redoc.
+
 ---
 
 ## Requirements
@@ -40,7 +42,7 @@ An API to manage a book catalog with basic functionalities using **FastAPI**.
 - [x] Implement the Book model with Pydantic  
 - [x] Create CRUD endpoints  
 - [x] Add filters for author and year  
-- [ ] Customize error and delete responses  
+- [x] Customize error and delete responses  
 
 ---
 
